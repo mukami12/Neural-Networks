@@ -7,8 +7,8 @@ Created on Mon Jul 29 11:48:06 2019
 import numpy as np
 import pickle
 from keras import applications
-from keras.models import Sequential 
-from keras.layers import Dense, Activation, Dropout, BatchNormalization, Conv2D, MaxPool2D, Flatten
+from keras.models import Sequential,Model
+from keras.layers import Dense, Activation, Dropout, BatchNormalization, Conv2D, MaxPool2D, Flatten, ZeroPadding2D,Input,Reshape
 from sklearn.model_selection import train_test_split
 from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 from keras.optimizers import Adam
@@ -17,16 +17,11 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 import keras
-from keras.layers import Dense, Dropout, Input, Flatten, Reshape, Conv2D, MaxPooling2D
-from keras.models import Model,Sequential
 from keras.datasets import mnist
 from tqdm import tqdm
 from keras.layers.advanced_activations import LeakyReLU, ReLU
-from keras.optimizers import Adam
-import pickle
-import tensorflow as tf
+
 
 epochs = 10
 batch_size = 32
@@ -35,14 +30,9 @@ d_out = []
 num_category = 10
 def load_data():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    x_train = (x_train.astype(np.float32) - 127.5)/127.5
-   
-    # convert shape of x_train from (60000, 28, 28) to (60000, 784) 
-    # 784 columns per row
-    #x_train = x_train.reshape(60000, 784)
     return (x_train, y_train, x_test, y_test)
 
-def create_discriminator():
+def create_network():
     
          ##model building
         model = Sequential()
@@ -80,23 +70,14 @@ def training(epochs,batch_size):
     y_train = keras.utils.to_categorical(y_train, num_category)
     y_test = keras.utils.to_categorical(y_test, num_category)
     print(X_test.shape,y_test.shape)
-    model_aug= create_discriminator()
+    model_aug= create_network()
     model_aug.compile(loss='binary_crossentropy', optimizer=adam_optimizer(),metrics=['accuracy'])
     model_aug.summary()
-    
-  #d_loss = discriminator.train_on_batch(X, y_dis)
+   
     d_loss = model_aug.fit(X_train, y_train,batch_size=batch_size,epochs=epochs)
-    d_out.append(np.array(d_loss))
-
-                #print("%d %f %f %f " % (epochs, d_loss[0], d_loss[1],g_loss))
-               # print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epochs, d_loss[0], 100*d_loss[1], g_loss))
-                
-    #discriminator.model.save("d_images_model.h5")
     scores = model_aug.evaluate(X_test,y_test,batch_size=32)
     print(model_aug.evaluate(X_test,y_test,batch_size=32))
-    
-    print("%s: %.2f%%" % (model_aug.metrics_names[1], scores[1]))
-   # print("%.2f%% (+/- %.2f%%)" % (np.mean(scores), np.std(scores)))           
+    print("%s: %.2f%%" % (model_aug.metrics_names[1], scores[1]))       
     print("%s: %.2f%%" % (model_aug.metrics_names[0], scores[0]))          
   
    
