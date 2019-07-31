@@ -50,9 +50,6 @@ def create_generator():
     gmodel.add(LeakyReLU(alpha=0.2))
     gmodel.add(BatchNormalization(momentum=0.8))
     gmodel.add(Dense(units=784, activation='tanh'))
-   
-    #gnoise = Input(shape=(100,))
-    #gimg = gmodel(gnoise)
     return gmodel
 
 def create_discriminator():
@@ -62,16 +59,7 @@ def create_discriminator():
     dmodel.add(Dense(256))
     dmodel.add(LeakyReLU(alpha=0.2))
     dmodel.add(Dense(1, activation='sigmoid'))
-   # dmodel.compile(loss='binary_crossentropy', optimizer=adam_optimizer(),metrics=['accuracy'])    
-    return dmodel
-
-"""
-d =create_discriminator()
-d.summary()
-g=create_generator()
-g.summary()
-    
-"""    
+    return dmodel 
 
 
 def create_gan(discriminator, generator):
@@ -80,7 +68,6 @@ def create_gan(discriminator, generator):
     x = generator(gan_input)
     gan_output = discriminator(x)
     gan= Model(inputs=gan_input, outputs=gan_output)
-#    gan.compile(loss='binary_crossentropy', optimizer='adam')
     return gan
 
 
@@ -111,7 +98,7 @@ def training(epochs,batch_size):
     discriminator.summary()
     generator.summary()
     gan.summary()
-    """
+    
     for e in range(1,epochs+1 ):
             print("Epoch %d" %e)
             for _ in tqdm(range(batch_size)):
@@ -138,34 +125,24 @@ def training(epochs,batch_size):
                 print("Discriminator LOSS",d_loss)
                 d_out.append(np.array(d_loss))
                 
-                
-        
-                
-                 # During the training of gan, 
-                # the weights of discriminator should be fixed. 
-                #We can enforce that by setting the trainable flag
+                # Fixing Discriminator weights
                 discriminator.trainable=False
                   #Tricking the noised input of the Generator as real data
                 noise= np.random.normal(0,1, [batch_size, 100])
                 y_gen = np.ones(batch_size)
-                
-                     #training  the GAN by alternating the training of the Discriminator 
-                #and training the chained GAN model with Discriminator’s weights freezed.
-                
+           
+                #Train the GAN     
                 g_loss= gan.fit(noise,y_gen)
-                print("Generator LOSS",g_loss)
-                g_out.append(np.array(g_loss))
-                #print("%d %f %f %f " % (epochs, d_loss[0], d_loss[1],g_loss))
-               # print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epochs, d_loss[0], 100*d_loss[1], g_loss))
                 
             if e == 1 or e % 20 == 0:
                 plot_generated_images(e,generator)
-       """         
+               
     generator.model.save("g_images_model.h5")
     discriminator.model.save("d_images_model.h5")
     discriminator.trainable = False
+    
+    #Evaluate the Generator
     scores = discriminator.evaluate(X_test,y_test,batch_size=32)
-    discriminator.evaluate(X_test,y_test,batch_size=32)
     
     print("%s: %.2f%%" % (discriminator.metrics_names[1], scores[1]*100))
     print("%.2f%% (+/- %.2f%%)" % (np.mean(scores), np.std(scores)))           
