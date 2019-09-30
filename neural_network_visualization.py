@@ -1,3 +1,39 @@
+"""
+#ELI5 USING GRADCAM
+
+from keras.applications.resnet50 import ResNet50
+from keras.preprocessing import image
+from keras.applications.resnet50 import preprocess_input, decode_predictions
+import numpy as np
+from IPython.display import display
+import eli5
+
+model = ResNet50(weights='imagenet')
+model.summary()
+img_path = 'data1/ecg.png'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+
+preds = model.predict(x)
+# decode the results into a list of tuples (class, description, probability)
+# (one such list for each sample in the batch)
+print('Predicted:', decode_predictions(preds, top=3)[0])
+
+window_idx = 904 # 'window screen'
+turtle_idx = 35 
+display(eli5.show_prediction(model, x,))#targets=[3]))
+
+
+
+ixs = [5, 8,10, 15, 18]
+for l in ixs:
+    print(l)
+    display(eli5.show_prediction(model, x, layer=l)) # we pass the layer as an argument
+"""
+
+
 
 
 """
@@ -50,6 +86,9 @@ for fmap in feature_maps:
 
 
 """
+
+
+
 
 """
 #VISUALIZATION USING LIME
